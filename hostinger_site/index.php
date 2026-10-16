@@ -12,6 +12,7 @@
  * Routes (see .htaccess); every one also works as index.php?action=<name>:
  *   /                              the dashboard
  *   ?action=login | logout         sign in and out
+ *   ?action=install                no usable api/config.php yet: database form
  *   ?action=setup                  first visit only: create the admin
  *   ?action=account                change your own password
  *   ?action=users                  admin: add, change and delete accounts
@@ -29,6 +30,7 @@ require __DIR__ . '/php/exports.php';
 require __DIR__ . '/php/jobs.php';
 require __DIR__ . '/php/auth.php';
 require __DIR__ . '/php/auth_views.php';
+require __DIR__ . '/php/setup.php';
 
 const BB_SCRAPE_ACTIONS = ['check-now', 'discover-all', 'discover-scope'];
 
@@ -90,13 +92,30 @@ $isPost = $method === 'POST';
 $isDataRoute = bb_wants_json() || in_array($action, ['models', 'job-status'], true);
 
 try {
-    if (bb_config_file() === null) {
-        // Fresh upload: explain the one remaining step instead of failing.
+    // ------------------------- no usable api/config.php yet: the setup form
+    $configProblem = bb_config_problem();
+    if ($configProblem !== null) {
         if ($isDataRoute) {
-            bb_send_json(503, ['error' => 'api/config.php is missing.', 'message' => 'The site is not set up yet.', 'running' => false]);
-        } else {
-            bb_send_html(bb_missing_config_page(), 503);
+            bb_send_json(503, ['error' => 'api/config.php is not set up.', 'message' => 'The site is not set up yet.', 'running' => false]);
+            return;
         }
+        bb_session_start();
+        if ($action === 'install' && $isPost) {
+            $typed = ['database' => (string) ($_POST['database'] ?? ''), 'user' => (string) ($_POST['db_user'] ?? '')];
+            if (!bb_csrf_ok()) {
+                bb_send_html(bb_setup_form_page($configProblem, 'The form expired. Please try again.', $typed), 400);
+                return;
+            }
+            [$problem, $apiKey] = bb_save_setup($typed['database'], $typed['user'], (string) ($_POST['db_password'] ?? ''), (string) ($_POST['api_key'] ?? ''));
+            if ($problem !== null) {
+                usleep(400000);
+                bb_send_html(bb_setup_form_page($configProblem, $problem, $typed), 400);
+                return;
+            }
+            bb_send_html(bb_setup_done_page($apiKey));
+            return;
+        }
+        bb_send_html(bb_setup_form_page($configProblem), 503);
         return;
     }
     bb_session_start();

@@ -1,33 +1,33 @@
-BUYBACK PRICE API (PHP) - HOSTINGER SETUP
-=========================================
+BUYBACK PRICE SITE - HOSTINGER SETUP
+====================================
 
-This folder is the price store API. The scraper (GitHub Actions, Render or
-your PC) posts prices here, and the dashboards read them back.
+The scraper (GitHub Actions, Render or your PC) posts prices to this API,
+and the dashboard shows them.
 
 1. In hPanel go to Databases > Management and create a MySQL database.
    Note the database name, user name and password. (An existing database
    works too: the tables are called buyback_prices and buyback_users.)
 
-2. In hPanel File Manager open public_html, create a folder named "api"
-   and put these files in it: index.php, .htaccess, config.example.php.
-   (.htaccess is hidden by default; enable "Show hidden files".)
-   The GitHub deploy workflow or make_zip.py does this for you.
+2. In hPanel File Manager open the site's public_html, upload the zip and
+   extract it there. (Or let the GitHub deploy workflow upload the files.)
 
-3. Copy config.example.php to config.php and fill in:
-      dsn       -> mysql:host=localhost;dbname=YOUR_DATABASE;charset=utf8mb4
-      user      -> your database user
-      password  -> your database password
-      api_key   -> a long random secret. Make one on your PC with:
-                   python -c "import secrets; print(secrets.token_urlsafe(32))"
-   Never write the key in any other file in this folder.
+3. Open the site in a browser. It shows "Connect the database": type the
+   database name, user and password and press "Test and save". The page
+   checks the login, creates the tables and writes api/config.php itself.
+   It also shows the API key (a new one, or the one already in config.php).
 
-4. Open https://YOUR-DOMAIN/api/health in a browser. It must show
+   By hand instead: copy config.example.php to config.php in this folder
+   and fill in dsn, user, password and api_key. Make a key on your PC with:
+       python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+4. Open https://YOUR-SITE/api/health in a browser. It must show
       {"status":"ok"}
 
 5. On GitHub (repository > Settings > Secrets and variables > Actions) and
    on any PC that scrapes (.env file) set:
-      PRICE_API_URL = https://YOUR-DOMAIN/api
-      PRICE_API_KEY = the same api_key as in config.php
+      PRICE_API_URL = https://YOUR-SITE/api
+      PRICE_API_KEY = the api_key from step 3
 
-If the key ever leaks, change it in config.php, in the GitHub secret and in
-your .env file.
+The setup page only appears while api/config.php is missing, unreadable or
+still has the example values. To run it again, delete api/config.php.
+If the key ever leaks, change it in config.php and in the GitHub secret.

@@ -48,11 +48,17 @@ Files > File Manager open `public_html`, upload the zip and extract it
 there, replacing files. The zip has no `config.php` and no keys, so the
 `api/config.php` already on the server is left alone.
 
-First time only: copy `api/config.example.php` to `api/config.php` and fill
-in the database lines and `api_key` (see `api/SETUP.txt`). Until that file
-exists, the site shows a "Connect the database" page with these steps. The
-zip also carries `schema.sql`, which you can import in phpMyAdmin to create
-the tables up front (optional: the site creates them on first use).
+First time only: open the site. While `api/config.php` is missing, cannot be
+read (a typing mistake) or still has the example values, the site shows a
+"Connect the database" form instead of the dashboard. Type the database
+name, user and password from hPanel and press "Test and save": it checks the
+login, creates the tables and writes `api/config.php`, then shows the API key
+for the GitHub secret `PRICE_API_KEY`. Once the file works the form is gone;
+delete `api/config.php` to run it again. Editing the file by hand from
+`api/config.example.php` still works too (see `api/SETUP.txt`).
+
+The zip also carries `schema.sql`, which you can import in phpMyAdmin to
+create the tables up front (optional: the site creates them itself).
 
 Then open the site. The dashboard should load with the pill
 "Hostinger (live) · MySQL".
