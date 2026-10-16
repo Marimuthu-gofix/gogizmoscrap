@@ -56,7 +56,7 @@ jobs:
       - name: Assemble the files for public_html
         run: |
           mkdir -p deploy/api
-          cp hostinger_site/index.php hostinger_site/.htaccess deploy/
+          cp hostinger_site/index.php hostinger_site/.htaccess hostinger_site/schema.sql deploy/
           cp -r hostinger_site/php hostinger_site/public deploy/
           rm -rf deploy/php/cache
           cp hostinger_api/index.php hostinger_api/.htaccess hostinger_api/config.example.php hostinger_api/SETUP.txt deploy/api/
@@ -83,8 +83,12 @@ jobs:
             echo "::warning::Set the SITE_URL repository variable to check the live site after each deploy."
             exit 0
           fi
+          curl -sSL -o /tmp/page.html -w "Dashboard: HTTP %{http_code}\n" "$SITE_URL/"
+          if grep -q "Connect the database" /tmp/page.html; then
+            echo "::warning::The files are on the server. Finish the setup: create api/config.php there (see api/SETUP.txt)."
+            exit 0
+          fi
+          grep -qi "buyback" /tmp/page.html && echo "Dashboard page renders"
           echo "API health:"
           curl -fsS "$SITE_URL/api/health"
           echo
-          curl -fsSL -o /tmp/page.html -w "Dashboard: HTTP %{http_code}\n" "$SITE_URL/"
-          grep -qi "buyback" /tmp/page.html && echo "Dashboard page renders"

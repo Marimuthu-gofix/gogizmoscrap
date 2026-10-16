@@ -2,9 +2,10 @@
 
     python hostinger_site/make_zip.py
 
-The zip holds the PHP dashboard (index.php, php/, public/, .htaccess) and the
-price API in api/ (taken from ../hostinger_api). Extract it into public_html
-in Hostinger's File Manager. It never contains config.php, the cache or any
+The zip holds the PHP dashboard (index.php, php/, public/, .htaccess), the
+database tables (schema.sql, to import in phpMyAdmin) and the price API in
+api/ (taken from ../hostinger_api). Extract it into public_html in
+Hostinger's File Manager. It never contains config.php, the cache or any
 key, so an existing api/config.php on the server is left alone.
 """
 from __future__ import annotations
@@ -17,7 +18,7 @@ REPO = SITE.parent
 API = REPO / "hostinger_api"
 OUT = REPO / "buyback_hostinger_site.zip"
 
-SITE_FILES = ["index.php", ".htaccess"]
+SITE_FILES = ["index.php", ".htaccess", "schema.sql"]
 SITE_DIRS = ["php", "public"]
 API_FILES = ["index.php", ".htaccess", "config.example.php", "SETUP.txt"]
 NEVER = {"config.php", "cache", ".env"}

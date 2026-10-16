@@ -90,6 +90,15 @@ $isPost = $method === 'POST';
 $isDataRoute = bb_wants_json() || in_array($action, ['models', 'job-status'], true);
 
 try {
+    if (bb_config_file() === null) {
+        // Fresh upload: explain the one remaining step instead of failing.
+        if ($isDataRoute) {
+            bb_send_json(503, ['error' => 'api/config.php is missing.', 'message' => 'The site is not set up yet.', 'running' => false]);
+        } else {
+            bb_send_html(bb_missing_config_page(), 503);
+        }
+        return;
+    }
     bb_session_start();
 
     // ------------------------------------- first visit: nobody can administer yet

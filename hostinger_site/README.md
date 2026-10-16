@@ -49,7 +49,10 @@ there, replacing files. The zip has no `config.php` and no keys, so the
 `api/config.php` already on the server is left alone.
 
 First time only: copy `api/config.example.php` to `api/config.php` and fill
-in the database lines and `api_key` (see `api/SETUP.txt`).
+in the database lines and `api_key` (see `api/SETUP.txt`). Until that file
+exists, the site shows a "Connect the database" page with these steps. The
+zip also carries `schema.sql`, which you can import in phpMyAdmin to create
+the tables up front (optional: the site creates them on first use).
 
 Then open the site. The dashboard should load with the pill
 "Hostinger (live) · MySQL".

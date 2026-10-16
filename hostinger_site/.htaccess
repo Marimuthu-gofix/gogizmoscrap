@@ -9,6 +9,8 @@ RewriteRule ^favicon\.ico$ public/favicon.ico [L]
 RewriteRule ^job-status/?$ index.php?action=job-status [L,QSA]
 RewriteRule ^(check-now|discover-all|discover-scope|models\.json|export\.csv|export\.xlsx)/?$ index.php?action=$1 [L,QSA]
 
-# PHP includes, the cache, and leftovers of older uploads are not for the browser.
+# PHP includes, the cache, the table definitions and leftovers of older
+# uploads are not for the browser.
+RewriteRule \.(sql|zip)$ - [F,L]
 RewriteRule ^(php|src|views|scripts|node_modules)(/|$) - [F,L]
 RewriteRule ^(package(-lock)?\.json|config\.json|README\.md|HOSTINGER\.md|Dockerfile|\.env.*|\.gitignore|\.dockerignore|\.buyback-deploy-state\.json)$ - [F,L]

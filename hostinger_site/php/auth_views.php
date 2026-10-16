@@ -45,6 +45,30 @@ function bb_csrf_field(): string
     return '<input type="hidden" name="csrf" value="' . e(bb_csrf_token()) . '">';
 }
 
+/** Shown until api/config.php exists: what to do next, step by step. */
+function bb_missing_config_page(): string
+{
+    $body = <<<'HTML'
+      <section class="auth-card">
+        <p class="eyebrow">Buyback</p>
+        <h1>Connect the database</h1>
+        <p class="auth-note">The site is uploaded. One file is still needed: <code>api/config.php</code>, which holds the database login and the API key.</p>
+        <ol class="setup-steps">
+          <li><strong>Create a database.</strong> hPanel &rsaquo; Databases &rsaquo; Management: create a MySQL database and note its name, user and password.
+            Optional: in phpMyAdmin, Import the file <code>schema.sql</code> from the zip to create the tables now (the site also creates them by itself).</li>
+          <li><strong>Create the config file.</strong> hPanel &rsaquo; Files &rsaquo; File Manager &rsaquo; <code>public_html/api</code>: copy <code>config.example.php</code>, name the copy <code>config.php</code>, and edit these lines:
+            <pre>'dsn' => 'mysql:host=localhost;dbname=YOUR_DATABASE;charset=utf8mb4',
+'user' => 'YOUR_DATABASE_USER',
+'password' => 'YOUR_DATABASE_PASSWORD',
+'api_key' => 'A_LONG_RANDOM_SECRET',</pre></li>
+          <li><strong>Reload this page.</strong> You will be asked to create the admin account; the setup code is the <code>api_key</code>.</li>
+        </ol>
+        <p class="auth-note">Full instructions: <code>api/SETUP.txt</code> in the zip.</p>
+      </section>
+HTML;
+    return bb_auth_page('Setup needed', $body, false);
+}
+
 function bb_login_page(?array $flash, string $username = ''): string
 {
     $alert = bb_alert_html($flash);

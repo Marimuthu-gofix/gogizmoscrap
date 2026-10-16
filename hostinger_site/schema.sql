@@ -1,12 +1,15 @@
 -- Buyback price database tables (MySQL / MariaDB, Hostinger).
 --
--- You normally do NOT need this file: the site and the API create these
--- tables by themselves on first use. It is here for a manual setup, a new
--- database, or as a reference.
+-- Optional: the site and the API create these tables by themselves on first
+-- use. Import this file to create them up front, for a new database, or as
+-- a reference.
 --
 -- How to run it: hPanel > Databases > phpMyAdmin > choose your database on
 -- the left > Import tab > choose this file > Go.  (Or paste it into the SQL
 -- tab and press Go.)
+--
+-- The site still needs api/config.php with this database's name, user and
+-- password; see api/SETUP.txt.
 --
 -- It is safe to run on a database that already has the tables: every
 -- statement uses IF NOT EXISTS, so nothing is changed or deleted.

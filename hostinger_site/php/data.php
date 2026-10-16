@@ -47,17 +47,25 @@ const BB_SIZE_PATTERN = '/(\d+(?:\.\d+)?)\s*(TB|GB|MB)\b/i';
 const BB_CACHE_DIR = __DIR__ . '/cache';
 
 // ------------------------------------------------------------ configuration
+/** Path of api/config.php, or null while it has not been created yet. */
+function bb_config_file(): ?string
+{
+    // On the server the API folder sits next to this one (public_html/api).
+    // In the repository it is ../hostinger_api, used when trying the site on a PC.
+    foreach ([dirname(__DIR__) . '/api/config.php', dirname(__DIR__, 2) . '/hostinger_api/config.php'] as $file) {
+        if (is_file($file)) {
+            return $file;
+        }
+    }
+    return null;
+}
+
 function bb_config(): array
 {
     static $config = null;
     if ($config === null) {
-        // On the server the API folder sits next to this one (public_html/api).
-        // In the repository it is ../hostinger_api, used when trying the site on a PC.
-        $file = dirname(__DIR__) . '/api/config.php';
-        if (!is_file($file)) {
-            $file = dirname(__DIR__, 2) . '/hostinger_api/config.php';
-        }
-        if (!is_file($file)) {
+        $file = bb_config_file();
+        if ($file === null) {
             throw new RuntimeException('api/config.php is missing; copy api/config.example.php and fill it in');
         }
         $config = require $file;
