@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: buybackprice
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.5
+      # Set these two in the Render dashboard (not here) so the app reads and
+      # writes the Hostinger store instead of a local file that resets.
+      - key: PRICE_API_URL
+        sync: false
+      - key: PRICE_API_KEY
+        sync: false

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "buyback-dashboard",
+      "runtimeExecutable": "D:/buybackmoblieprice/.venv/Scripts/python.exe",
+      "runtimeArgs": ["dashboard.py"],
+      "port": 5050
+    },
+    {
+      "name": "buyback-php-dashboard",
+      "runtimeExecutable": "C:/xampp/php/php.exe",
+      "runtimeArgs": ["-d", "extension=zip", "-S", "127.0.0.1:5055", "-t", "D:/buybackmoblieprice/hostinger_site", "D:/buybackmoblieprice/hostinger_site/php/dev-server.php"],
+      "port": 5055
+    }
+  ]
+}

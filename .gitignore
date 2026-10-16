@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.sqlite3
+*.csv
+*.log
+buyback_prices.png
+.cashify_token.json
+.env
+hostinger_api/config.php
+buyback_hostinger_site.zip
+hostinger_site/php/cache/
+hostinger_api/local_test_login.txt

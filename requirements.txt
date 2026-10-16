@@ -1,0 +1,6 @@
+Flask>=3.0.0
+gunicorn>=22.0.0
+openpyxl>=3.1.0
+matplotlib>=3.8.0
+# Time zones for Windows (Linux has them built in).
+tzdata>=2024.1
