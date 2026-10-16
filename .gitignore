@@ -13,3 +13,7 @@ hostinger_api/config.php
 buyback_hostinger_site.zip
 hostinger_site/php/cache/
 hostinger_api/local_test_login.txt
+# The real config.php for the live site (database password, API key).
+hostinger_live_config/
+# A copy of the zip extracted on this PC for uploading.
+buyback_hostinger_site/
