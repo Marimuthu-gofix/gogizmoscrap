@@ -148,8 +148,12 @@ The Hostinger dashboard's buttons start the same workflow once
 `github_token` and `github_repo` are in `api/config.php`.
 
 Each run keeps its SQLite file as a downloadable backup for two weeks.
-GitHub pauses scheduled workflows when a repository has had no pushes for 60
-days; pressing Run workflow once wakes it up again.
+In a public repository GitHub pauses scheduled workflows after 60 days
+without commits. The workflow's last step, "Keep the schedule switched on",
+re-enables it after every run to prevent that. It is a common workaround,
+not a GitHub guarantee: if the schedule is ever paused anyway, open Actions >
+Full scrape and press Enable workflow (or make the repository private, where
+the rule does not apply).
 
 ## Local settings (.env)
 

@@ -44,6 +44,10 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    # contents: read for the checkout; actions: write for the keep-alive step.
+    permissions:
+      contents: read
+      actions: write
     env:
       PRICE_API_URL: ${{ secrets.PRICE_API_URL }}
       PRICE_API_KEY: ${{ secrets.PRICE_API_KEY }}
@@ -93,3 +97,17 @@ jobs:
           path: scrape.sqlite3
           retention-days: 14
           if-no-files-found: ignore
+
+      # GitHub switches off schedules in public repositories after 60 days
+      # without commits. Re-enabling this workflow after every run keeps the
+      # Monday/Thursday schedule on. This is a common workaround (the
+      # "keepalive" approach), not a documented GitHub guarantee; if GitHub
+      # still pauses it, Actions > Full scrape > Enable workflow turns it on.
+      - name: Keep the schedule switched on
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X PUT "repos/${{ github.repository }}/actions/workflows/scrape.yml/enable"
+          echo "The Monday/Thursday schedule is switched on."
