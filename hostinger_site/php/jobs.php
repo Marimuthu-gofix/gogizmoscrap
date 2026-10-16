@@ -113,8 +113,8 @@ function bb_proxy_job(string $route, string $method, array $form = []): array
     if (bb_scraper_url() === '') {
         $state = bb_job_state();
         if ($method === 'POST') {
-            $state = bb_default_job_state('No scraper is set up for the buttons');
-            $state['output'] = "Add github_token and github_repo to api/config.php (recommended), or scraper_url for a Render app.";
+            $state = bb_default_job_state('Connect GitHub first: user menu > Scrape settings');
+            $state['output'] = "Add a GitHub token under Scrape settings (or github_token in api/config.php), or scraper_url for a Render app.";
             bb_remember_job_state($state);
             return [503, $state];
         }

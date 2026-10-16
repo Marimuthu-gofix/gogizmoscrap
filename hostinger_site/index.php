@@ -16,6 +16,7 @@
  *   ?action=setup                  first visit only: create the admin
  *   ?action=account                change your own password
  *   ?action=users                  admin: add, change and delete accounts
+ *   ?action=settings               admin: the GitHub token for the scrape buttons
  *   /models.json                   model names for the export picker
  *   /export.csv, /export.xlsx      exports (scope=all|view|model)
  *   /check-now, /discover-all,
@@ -262,6 +263,24 @@ try {
             bb_send_html(bb_users_page($user, bb_all_users(), bb_take_flash()));
             break;
 
+        case 'settings':
+            if (!$isAdmin) {
+                bb_flash('error', 'Only an admin can change the scrape settings.');
+                bb_redirect('index.php');
+                break;
+            }
+            if ($isPost) {
+                $problem = bb_save_github_settings((string) ($_POST['github_token'] ?? ''), trim((string) ($_POST['github_repo'] ?? '')));
+                if ($problem === null) {
+                    bb_remember_job_state(bb_default_job_state('Ready: the scrape buttons now run on GitHub'));
+                }
+                bb_flash($problem === null ? 'ok' : 'error', $problem ?? 'Saved. The scrape buttons now start the scrape on GitHub.');
+                bb_redirect('index.php?action=settings');
+                break;
+            }
+            bb_send_html(bb_settings_page($user, bb_take_flash()));
+            break;
+
         case 'models':
             bb_send_json(200, bb_load_price_data()['model_options']);
             break;
@@ -343,6 +362,7 @@ try {
                 'job' => $isAdmin ? bb_job_state() : bb_default_job_state(),
                 'current_user' => $user,
                 'can_scrape' => $isAdmin,
+                'github_ready' => bb_github_config() !== null,
                 'csrf' => bb_csrf_token(),
                 'flash' => bb_take_flash(),
                 'search' => $filters['search'],
@@ -363,6 +383,7 @@ try {
                     'discover_scope' => 'index.php?action=discover-scope',
                     'job_status' => 'index.php?action=job-status',
                     'users' => 'index.php?action=users',
+                    'settings' => 'index.php?action=settings',
                     'account' => 'index.php?action=account',
                     'logout' => 'index.php?action=logout',
                 ],

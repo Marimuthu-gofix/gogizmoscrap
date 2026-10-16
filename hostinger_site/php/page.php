@@ -4,7 +4,7 @@ declare(strict_types=1);
 /** @var array $job, $stats, $pagination, $history_pagination, $latest, $history, $brands, $selected_brands, $per_page_options, $history_per_page_options, $suggestions, $active_filters, $sort_headers, $latest_links, $history_links, $urls */
 /** @var string $search, $sort, $sort_dir, $selected_status, $selected_platform, $selected_compare, $data_source */
 /** @var int $selected_per_page */
-/** @var array $current_user  the signed-in account; @var bool $can_scrape  true for an admin; @var string $csrf; @var ?array $flash */
+/** @var array $current_user  the signed-in account; @var bool $can_scrape  true for an admin; @var bool $github_ready  the scrape buttons can start GitHub runs; @var string $csrf; @var ?array $flash */
 
 $jobPct = $job['progress']['percent'] ?? null;
 $priceCell = function (?array $source, ?array $other): string {
@@ -117,6 +117,10 @@ $pager = function (array $pagination, array $links, string $label): string {
                 <strong>Accounts</strong>
                 <span>Add people, change roles and passwords</span>
               </a>
+              <a class="export-option" href="<?= e($urls['settings']) ?>">
+                <strong>Scrape settings</strong>
+                <span><?= $github_ready ? 'GitHub connected: change the token' : 'Connect GitHub so the scrape buttons work' ?></span>
+              </a>
             <?php endif; ?>
             <a class="export-option" href="<?= e($urls['account']) ?>">
               <strong>Change password</strong>
@@ -147,6 +151,8 @@ $pager = function (array $pagination, array $links, string $label): string {
               Time: calculating... | Done: <?= (int) ($job['progress']['done'] ?? 0) ?> models | Rows saved: <?= (int) ($job['progress']['rows'] ?? 0) ?> | Errors: <?= (int) ($job['progress']['errors'] ?? 0) ?><?php if (!empty($job['progress']['current'])): ?> | Current: <?= e($job['progress']['current']) ?><?php endif; ?>
             <?php elseif (!empty($job['started_at'])): ?>
               Started <?= e(bb_local_date($job['started_at'])) ?>
+            <?php elseif (!$github_ready): ?>
+              The scrape buttons run on GitHub. <a href="<?= e($urls['settings']) ?>">Open Scrape settings</a> to connect it once.
             <?php else: ?>
               Check every phone on Cashify and DOFY, or pick a platform, brand and model and press Scrape Selected.
             <?php endif; ?>

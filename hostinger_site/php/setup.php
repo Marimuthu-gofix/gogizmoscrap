@@ -127,26 +127,128 @@ function bb_save_setup(string $database, string $user, string $password, string 
         $values['github_token'] = $hints['github_token'];
     }
     $values['github_repo'] = $hints['github_repo'];
+    $problem = bb_write_config($values);
+    return $problem === null ? [null, $apiKey] : ['The details work, but ' . $problem, ''];
+}
+
+/**
+ * Write api/config.php from $values. var_export quotes every value
+ * correctly, whatever a password or token contains. Returns an error or null.
+ */
+function bb_write_config(array $values): ?string
+{
     $php = "<?php\n"
-        . '// Written by the setup page on ' . gmdate('Y-m-d H:i') . " UTC. Keep this file private.\n"
+        . '// Written by the dashboard on ' . gmdate('Y-m-d H:i') . " UTC. Keep this file private.\n"
         . "// Edit a value here to change it, or delete this file to run the setup page again.\n"
-        . "// To start scrapes from the dashboard, add a GitHub token:\n"
-        . "//     'github_token' => 'github_pat_...',\n"
         . "return [\n";
     foreach ($values as $key => $value) {
-        // var_export quotes every value correctly, whatever the password contains.
-        $php .= '    ' . var_export($key, true) . ' => ' . var_export($value, true) . ",\n";
+        $php .= '    ' . var_export((string) $key, true) . ' => ' . var_export($value, true) . ",\n";
     }
     $php .= "];\n";
 
     $target = bb_config_target();
     if (@file_put_contents($target, $php, LOCK_EX) === false) {
-        return ['The details work, but ' . basename(dirname($target)) . '/config.php could not be saved. Check that the api folder is writable in File Manager.', ''];
+        return basename(dirname($target)) . '/config.php could not be saved. Check that the api folder is writable in File Manager.';
     }
     if (function_exists('opcache_invalidate')) {
         @opcache_invalidate($target, true);
     }
-    return [null, $apiKey];
+    return null;
+}
+
+// --------------------------------------------------- GitHub scrape settings
+/**
+ * Check that a token can see the repository and its scrape workflow.
+ * Returns an error in plain words, or null when it looks right. (Starting a
+ * run is the only full test of "write" access, and that would start a scrape.)
+ */
+function bb_check_github(string $token, string $repo): ?string
+{
+    $github = [
+        'token' => $token, 'repo' => bb_github_repo_name($repo), 'workflow' => 'scrape.yml', 'ref' => 'main',
+        'api' => rtrim(trim((string) (bb_config()['github_api'] ?? 'https://api.github.com')), '/'), 'poll_seconds' => 8,
+    ];
+    if (!preg_match('#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $github['repo'])) {
+        return 'Enter the repository as owner/name, for example Marimuthu-gofix/gogizmoscrap.';
+    }
+    [$status, , $error] = bb_github_api($github, 'GET', '');
+    if ($status === 401) {
+        return 'GitHub says this token is not valid. It may be mistyped, expired or deleted; create a new one.';
+    }
+    if ($status !== 200) {
+        return "This token cannot see the repository {$github['repo']}. When creating the token, choose \"Only select repositories\" and pick it."
+            . ($status === 0 ? " (GitHub could not be reached: $error)" : '');
+    }
+    [$status] = bb_github_api($github, 'GET', '/actions/workflows/scrape.yml');
+    if ($status === 404) {
+        return "The token works, but GitHub shows no scrape workflow in {$github['repo']}. Check the repository name, and that "
+            . 'the token has the permission Actions: Read and write.';
+    }
+    if ($status !== 200) {
+        return 'The token cannot read GitHub Actions. Give it the repository permission Actions: Read and write.';
+    }
+    return null;
+}
+
+/** Save the GitHub token and repository into api/config.php, keeping everything else. */
+function bb_save_github_settings(string $token, string $repo): ?string
+{
+    $config = bb_config();
+    $token = trim($token, " \t\n\r\"'");
+    if ($token === '') {
+        $token = trim((string) ($config['github_token'] ?? ''));
+        if ($token === '') {
+            return 'Paste the GitHub token.';
+        }
+    }
+    $repo = bb_github_repo_name($repo !== '' ? $repo : BB_DEFAULT_GITHUB_REPO);
+    $problem = bb_check_github($token, $repo);
+    if ($problem !== null) {
+        return $problem;
+    }
+    $config['github_token'] = $token;
+    $config['github_repo'] = $repo;
+    return bb_write_config($config);
+}
+
+function bb_settings_page(array $user, ?array $flash): string
+{
+    $github = bb_github_config();
+    $alert = bb_alert_html($flash);
+    $csrf = bb_csrf_field();
+    $repo = e($github['repo'] ?? (string) (bb_config()['github_repo'] ?? BB_DEFAULT_GITHUB_REPO));
+    $status = $github
+        ? '<div class="auth-alert ok">Connected. "Check All Prices" and "Scrape Selected" start the scrape on GitHub (' . $repo . ').</div>'
+        : '<div class="auth-alert error">Not connected yet. Add a GitHub token below to make the scrape buttons work.</div>';
+    $tokenNote = $github ? 'A token is saved. Leave this empty to keep it, or paste a new one to replace it.' : 'Starts with github_pat_';
+    $body = <<<HTML
+      <section class="auth-card">
+        <p class="eyebrow">Buyback</p>
+        <h1>Scrape settings</h1>
+        <p class="auth-note">The scrape runs on GitHub Actions. The dashboard's buttons need a GitHub token that may start it.</p>
+        {$status}
+        {$alert}
+        <form method="post" action="index.php?action=settings" class="auth-form" autocomplete="off">
+          {$csrf}
+          <label for="github_token">GitHub token</label>
+          <input id="github_token" name="github_token" type="password" placeholder="github_pat_..." autocomplete="off" spellcheck="false">
+          <p class="auth-note">{$tokenNote}</p>
+          <label for="github_repo">Repository</label>
+          <input id="github_repo" name="github_repo" value="{$repo}" required spellcheck="false">
+          <button type="submit">Check and save</button>
+        </form>
+        <h4 class="detail-subheading">How to make the token</h4>
+        <ol class="setup-steps">
+          <li>On GitHub: your photo (top right) &rsaquo; <strong>Settings</strong> &rsaquo; <strong>Developer settings</strong> &rsaquo; <strong>Personal access tokens</strong> &rsaquo; <strong>Fine-grained tokens</strong> &rsaquo; <strong>Generate new token</strong>.</li>
+          <li>Name it, for example <code>gogizmoscrape dashboard</code>, and pick an expiry (up to a year).</li>
+          <li>Repository access: <strong>Only select repositories</strong> &rsaquo; <code>{$repo}</code>.</li>
+          <li>Permissions &rsaquo; Repository permissions &rsaquo; <strong>Actions: Read and write</strong>.</li>
+          <li><strong>Generate token</strong>, copy it, paste it above and press <strong>Check and save</strong>.</li>
+        </ol>
+        <p class="auth-note"><a href="index.php">Back to the dashboard</a></p>
+      </section>
+HTML;
+    return bb_auth_page('Scrape settings', $body, false);
 }
 
 // ------------------------------------------------------------------- pages
