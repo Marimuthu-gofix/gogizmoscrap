@@ -134,7 +134,7 @@ and `PRICE_API_KEY` are set (the pill in the header says which).
 ## Scheduled scrape on GitHub Actions (free)
 
 `.github/workflows/scrape.yml` scrapes both platforms every Monday and
-Thursday at 07:00 India time on GitHub's machines and posts the prices to
+Thursday at 02:00 India time on GitHub's machines and posts the prices to
 the Hostinger store. Setup, once:
 
 1. On GitHub open the repository > Settings > Secrets and variables >
